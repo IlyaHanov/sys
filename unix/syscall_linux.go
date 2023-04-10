@@ -1838,6 +1838,29 @@ func Dup2(oldfd, newfd int) error {
 //sys	Fsmount(fd int, flags int, mountAttrs int) (fsfd int, err error)
 //sys	Fsopen(fsName string, flags int) (fd int, err error)
 //sys	Fspick(dirfd int, pathName string, flags int) (fd int, err error)
+
+//sys	fsconfig(fd int, cmd uint, _key *byte, _value *byte, aux int) (err error)
+
+// Fsconfig is a wrapper for fsconfig system call.
+//
+// Requires kernel >= 5.2.
+//
+// Note that if value is a string it must be zero-termindated,
+// otherwise behavior is undefined
+func Fsconfig(fd int, cmd uint, key string, value []byte, aux int) (err error) {
+	var _key *byte
+	if key != "" {
+		_key, err = BytePtrFromString(key)
+		if err != nil {
+			return err
+		}
+	}
+	if (len(value) > 0) {
+		return fsconfig(fd, cmd, _key, &value[0], aux)
+	}
+	return fsconfig(fd, cmd, _key, nil, aux)
+}
+
 //sys	Getdents(fd int, buf []byte) (n int, err error) = SYS_GETDENTS64
 //sysnb	Getpgid(pid int) (pgid int, err error)
 
